@@ -21,14 +21,11 @@ pauseButton.addEventListener("click", pauseRecording);
 
 var token_value;
 var lock_voice = false;
-var streamInit = false;
 
 function startRecording() {
 
-	createAuthToken();
 
 	console.log("recordButton clicked");
-	console.log("recordButton clicked again");
 
 	/*
 		Simple constraints object, for more advanced audio features see
@@ -59,20 +56,16 @@ function startRecording() {
 			the sampleRate defaults to the one set in your OS for your playback device
 
 		*/
-	//	if( streamInit == false ){
-			audioContext = new AudioContext();
+		audioContext = new AudioContext();
 
-			//update the format 
-			document.getElementById("formats").innerHTML="Format: 1 channel pcm @ "+audioContext.sampleRate/1000+"kHz"
+		//update the format 
+		document.getElementById("formats").innerHTML="Format: 1 channel pcm @ "+audioContext.sampleRate/1000+"kHz"
 
-			/*  assign to gumStream for later use  */
-			gumStream = stream;
+		/*  assign to gumStream for later use  */
+		gumStream = stream;
 		
-			/* use the stream */
-			input = audioContext.createMediaStreamSource(stream);
-	//	}else{
-			streamInit = true;
-	//	}
+		/* use the stream */
+		input = audioContext.createMediaStreamSource(stream);
 
 		/* 
 			Create the Recorder object and configure to record mono sound (1 channel)
@@ -84,7 +77,6 @@ function startRecording() {
 		rec.record()
 
 		console.log("Recording started");
-		console.log( "recording new" );
 
 	}).catch(function(err) {
 	  	//enable the record button if getUserMedia() fails
@@ -110,7 +102,6 @@ function pauseRecording(){
 
 function stopRecording() {
 	console.log("stopButton clicked");
-	console.log("stop button clicked - new" );
 
 	//disable the stop button, enable the record too allow for new recordings
 	stopButton.disabled = true;
@@ -118,7 +109,8 @@ function stopRecording() {
 	pauseButton.disabled = true;
 
 	//reset button just in case the recording is stopped while paused
-	pauseButton.innerHTML="Pause"; 
+	pauseButton.innerHTML="Pause";
+	
 	//tell the recorder to stop the recording
 	rec.stop();
 
@@ -139,15 +131,13 @@ function createAuthToken(){
 			token_value = e.target.responseText;
 		}
 	};
-	//xhr.open("POST","https://westus.api.cognitive.microsoft.com/sts/v1.0/issueToken",true);
-	xhr.open("POST","https://canadacentral.api.cognitive.microsoft.com/sts/v1.0/issuetoken", true);
+	xhr.open("POST","https://westus.api.cognitive.microsoft.com/sts/v1.0/issueToken",true);
 	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded' );
-	xhr.setRequestHeader('Ocp-Apim-Subscription-Key', '10a47ec1ca214143811429e5ac54f243' );
+	xhr.setRequestHeader('Ocp-Apim-Subscription-Key', 'fd2e5356e1524e94a76bc82cc6e69ffa' );
 	xhr.send();
 }
 
 function callAzureVoiceApi(blob){
-	console.log("call azure api ")
 	var xhr=new XMLHttpRequest();
 	xhr.onload=function(e) {
 		if(this.readyState === 4) {
@@ -159,31 +149,14 @@ function callAzureVoiceApi(blob){
 	var language="en-US";
 	var locale="en-US";
 
-	//var request_url="https://westus.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?";
-	var request_url="https://canadacentral.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1";
+	var request_url="https://westus.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?";
 	console.log( request_url );
 	console.log( "token = " + token_value );
 	xhr.open("POST", request_url, true);
 	xhr.setRequestHeader('Authorization', 'Bearer ' + token_value );
-	xhr.setRequestHeader('language', 'en-US' );
 	xhr.setRequestHeader('Content-type', 'audio/wav; codec=\"audio/pcm\"; samplerate=16000' );
 	xhr.send(blob);
-}
 
-function callServer(blob){
-	return callAzureVoiceApi(blob);
-	var xhr=new XMLHttpRequest();
-	xhr.onload=function(e) {
-		if(this.readyState === 4) {
-			console.log("Server returned: ",e.target.responseText);
-		}
-	};
-
-	var request_url = "http://127.0.0.1:5000/voice";
-	console.log( "calling post on " + request_url );
-	xhr.open("POST", request_url, true);
-	xhr.setRequestHeader('Content-type', 'audio/wav; codec=\"audio/pcm\"; samplerate=16000' );
-	xhr.send(blob);
 }
 
 function playAudio(blob, endhandler) {
@@ -249,13 +222,8 @@ function startDialog(){
 
 function createDownloadLink(blob) {
 
-	console.log( "create download link" );
-	callServer(blob);
-	playAudio(blob);
-	console.log(blob);
+	playAudio( blob, startDialog );
 	return;
-	//playAudio( blob, startDialog );
-	//return;
 	console.log( "create download link called" );
 	//createAuthToken();
 	//callAzureVoiceApi(blob);
