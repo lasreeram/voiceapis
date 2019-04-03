@@ -255,7 +255,7 @@ function callServer(blob){
 				var blob = new Blob([view], {type: "audio/wav"});
 				//var blob = new Blob([view], {type: "audio/x-wav"});
 				//var blob = new Blob([view], { 'type' : 'audio/wav; codecs=MS_PCM' } );
-				//playAudio(blob, doneVoice);
+				playAudio(blob, doneVoice);
 				*/
 			}
 		}
@@ -364,7 +364,7 @@ function createDownloadLink(blob) {
 
 	console.log( "create download link" );
 	callServer(blob);
-	//playAudio(blob);
+	playAudio(blob);
 	console.log(blob);
 	return;
 	//playAudio( blob, startDialog );

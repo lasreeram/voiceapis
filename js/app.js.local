@@ -23,55 +23,6 @@ var token_value;
 var lock_voice = false;
 var streamInit = false;
 
-window.onload = init;
-var context;    // Audio context
-var buf;        // Audio buffer
-
-
-window.onload = init;
-var context;    // Audio context
-var buf;        // Audio buffer
-
-function init() {
-console.log( "init called" );
-if (!window.AudioContext) {
-    if (!window.webkitAudioContext) {
-        alert("Your browser does not support any AudioContext and cannot play back this audio.");
-        return;
-    }
-        window.AudioContext = window.webkitAudioContext;
-    }
-
-    context = new AudioContext();
-}
-
-function playByteArray(byteArray) {
-	console.log( "play byte array");
-
-    var arrayBuffer = new ArrayBuffer(byteArray.length);
-    var bufferView = new Uint8Array(arrayBuffer);
-    for (i = 0; i < byteArray.length; i++) {
-      bufferView[i] = byteArray[i];
-    }
-
-    context.decodeAudioData(arrayBuffer, function(buffer) {
-        buf = buffer;
-        play();
-    });
-}
-
-// Play the loaded file
-function play() {
-    // Create a source node from the buffer
-    var source = context.createBufferSource();
-    source.buffer = buf;
-    // Connect to the final output node (the speakers)
-    source.connect(context.destination);
-    // Play immediately
-    source.start(0);
-}
-
-
 function startRecording() {
 
 	createAuthToken();
@@ -219,64 +170,20 @@ function callAzureVoiceApi(blob){
 	xhr.send(blob);
 }
 
-function doneVoice(){
-	console.log( "done!");
-}
-
 function callServer(blob){
-        console.log("call server!");
-        console.log(blob);
+	return callAzureVoiceApi(blob);
 	var xhr=new XMLHttpRequest();
 	xhr.onload=function(e) {
 		if(this.readyState === 4) {
-			console.log( "on load of voice api called " + this.readyState + "," + this.status  );
-			if( this.status == 200 ){
-				//playByteArray(this.response);
-				var blob = new Blob([xhr.response], {type: "audio/wav"});
-				var url = URL.createObjectURL(blob);
-				var au = document.createElement('audio');
-				au.src = url;
-				au.onload = function(evt){
-					URL.revokeObjectURL(url);
-				}
-				au.play();
-				
-				/*
-				console.log("flask server returned: ",this.status);
-				console.log("flask server returned: ",this.response );
-				
-				var wavString = this.response;
-				var len = wavString.length;
-				var buf = new ArrayBuffer(len);
-				var view = new Uint8Array(buf);
-				for (var i = 0; i < len; i++) {
-  					view[i] = wavString.charCodeAt(i) & 0xff;
-				}
-				var blob = new Blob([view], {type: "audio/wav"});
-				//var blob = new Blob([view], {type: "audio/x-wav"});
-				//var blob = new Blob([view], { 'type' : 'audio/wav; codecs=MS_PCM' } );
-				//playAudio(blob, doneVoice);
-				*/
-			}
+			console.log("Server returned: ",e.target.responseText);
 		}
 	};
 
-	var request_url = "http://13.88.224.49:5000/voice";
+	var request_url = "http://127.0.0.1:5000/voice";
 	console.log( "calling post on " + request_url );
 	xhr.open("POST", request_url, true);
 	xhr.setRequestHeader('Content-type', 'audio/wav; codec=\"audio/pcm\"; samplerate=16000' );
-	xhr.responseType = 'blob';
 	xhr.send(blob);
-}
-
-function playMP3(blob, endhandler) {
-	console.log( "play audio" );
-	var au = document.createElement('audio');
-	au.type = AudioType;
-	var url = URL.createObjectURL(blob);
-	au.src = url;
-	au.addEventListener( 'ended', endhandler );
-	au.play();
 }
 
 function playAudio(blob, endhandler) {
@@ -300,22 +207,6 @@ function recordAndSendUserVoice(){
 	setTimeout( stopRecording, 10000 ); 
 }
 
-function convertmp3ToBlob(mp3data){
-	
-}
-
-function convertWAVToBlob(wavString){
-	var len = wavString.length;
-	var buf = new ArrayBuffer(len);
-	var view = new Uint8Array(buf);
-	for (var i = 0; i < len; i++) {
-		view[i] = wavString.charCodeAt(i) & 0xff;
-	}
-	var blob = new Blob([view], {type: "audio/x-wav"});
-
-	return blob;
-}
-
 function playServerVoice(dialogStart){
 	console.log( "play server voice " );
 	//if lock is not available return true 
@@ -327,9 +218,6 @@ function playServerVoice(dialogStart){
 			if( this.status == 200 ){
 				console.log("flask server returned: ",this.status);
 				console.log("flask server returned: ",this.response );
-				
-				//playMP3( this.response, doneVoice );
-				
 				var wavString = this.response;
 				var len = wavString.length;
 				var buf = new ArrayBuffer(len);
@@ -339,11 +227,10 @@ function playServerVoice(dialogStart){
 				}
 				var blob = new Blob([view], {type: "audio/x-wav"});
 				playAudio(blob, recordAndSendUserVoice);
-			
 			}
 		}
 	};
-	var request_url = "http://13.88.224.49:5000/voice";
+	var request_url = "http://127.0.0.1:5000/voice";
 	console.log( request_url );
 	xhr.open("GET", request_url, true);
 	//xhr.setRequestHeader('Content-type', 'text/plain' );
@@ -364,7 +251,7 @@ function createDownloadLink(blob) {
 
 	console.log( "create download link" );
 	callServer(blob);
-	//playAudio(blob);
+	playAudio(blob);
 	console.log(blob);
 	return;
 	//playAudio( blob, startDialog );
